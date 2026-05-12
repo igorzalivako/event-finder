@@ -36,16 +36,12 @@ namespace EventFinder.API
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             }); ;
 
-            builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
-            builder.Services.Configure<SmtpOptions>(
-                builder.Configuration.GetSection("MailerSend"));
-
-            /*builder.Services.Configure<MailerSendOptions>(
+            builder.Services.Configure<MailerSendOptions>(
                 builder.Configuration.GetSection("MailerSend"));
 
             builder.Services.AddHttpClient();
 
-            builder.Services.AddScoped<IEmailSender, MailerSendEmailSender>();*/
+            builder.Services.AddScoped<IEmailSender, MailerSendEmailSender>();
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
