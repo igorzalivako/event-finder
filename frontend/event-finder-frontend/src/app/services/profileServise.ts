@@ -5,10 +5,15 @@ import {ProfileEntity} from "../entities/profile.types";
 
 class ProfileService {
     private userId: string | null = null;
+    private setUserName: ((newName: string) => void) | null = null;
 
     setUserId(userId: string) {
         this.userId = userId;
     }
+
+    setSetterUserName(setter: (newName: string) => void) {
+        this.setUserName = setter;
+    };
 
 
     async getProfile(token: string): Promise<ProfileEntity> {
@@ -28,6 +33,9 @@ class ProfileService {
         if (!this.userId) {
             throw new Error("User ID not set");
         }
+
+        if (userData.userName)
+            this.setUserName(userData.userName);
 
         try {
             return await updateUser(this.userId, userData, token);

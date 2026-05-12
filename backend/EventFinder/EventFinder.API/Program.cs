@@ -36,12 +36,16 @@ namespace EventFinder.API
                 options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
             }); ;
 
-            builder.Services.Configure<MailerSendOptions>(
+            builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+            builder.Services.Configure<SmtpOptions>(
+                builder.Configuration.GetSection("MailerSend"));
+
+            /*builder.Services.Configure<MailerSendOptions>(
                 builder.Configuration.GetSection("MailerSend"));
 
             builder.Services.AddHttpClient();
 
-            builder.Services.AddScoped<IEmailSender, MailerSendEmailSender>();
+            builder.Services.AddScoped<IEmailSender, MailerSendEmailSender>();*/
 
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -88,10 +92,11 @@ namespace EventFinder.API
             {
                 options.AddDefaultPolicy(policy =>
                 {
-                    policy.AllowAnyOrigin()
-                          .AllowAnyMethod()
-                          .AllowAnyHeader();
-                });
+                    policy.WithOrigins("https://alexthunder2005.github.io")
+                       .AllowAnyMethod()
+                       .AllowAnyHeader()
+                       .AllowCredentials(); 
+                    });
             });
 
             var app = builder.Build();
@@ -115,7 +120,8 @@ namespace EventFinder.API
             }
 
             // Configure the HTTP request pipeline.
-
+            app.UsePathBase("/app");
+            app.UseStaticFiles();
             app.UseCors();
             app.UseAuthentication();
             app.UseAuthorization();

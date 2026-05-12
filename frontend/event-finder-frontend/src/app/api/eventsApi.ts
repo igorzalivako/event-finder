@@ -93,7 +93,7 @@ export async function getEventById(eventId: string, token: string): Promise<Even
 
 // GET /api/events/organizer/{organizerId} - Получить события организатора
 export async function getEventsByOrganizer(organizerId: string, token: string): Promise<EventEntity[]> {
-    const response = await fetch(`${SERVER_URL}/api/v1.0/events?organizerId=${organizerId}`, {
+    const response = await fetch(`${SERVER_URL}/api/v1.0/events/organizer/${organizerId}`, {
         method: "GET",
         headers: {
             "Authorization": `Bearer ${token}`,
@@ -234,7 +234,6 @@ export async function deleteEvent(eventId: string, token: string): Promise<void>
     }
 }
 
-// POST /api/events/{id}/register - Записаться на событие
 export async function registerForEvent(eventId: string, token: string): Promise<EventEntity> {
     const response = await fetch(`${SERVER_URL}/api/v1.0/events/${eventId}/register`, {
         method: "POST",
@@ -251,10 +250,13 @@ export async function registerForEvent(eventId: string, token: string): Promise<
         throw error;
     }
 
-    return await response.json();
+    const updatedEvent = await response.json();
+    console.log("Register response - updated event:", updatedEvent);
+    console.log("Available spots after register:", updatedEvent.availableSpots);
+
+    return updatedEvent;
 }
 
-// DELETE /api/events/{id}/register - Отменить запись на событие
 export async function cancelEventRegistration(eventId: string, token: string): Promise<EventEntity> {
     const response = await fetch(`${SERVER_URL}/api/v1.0/events/${eventId}/register`, {
         method: "DELETE",
@@ -271,10 +273,15 @@ export async function cancelEventRegistration(eventId: string, token: string): P
         throw error;
     }
 
-    return await response.json();
+    const updatedEvent = await response.json();
+    console.log("Cancel response - updated event:", updatedEvent);
+    console.log("Available spots after cancel:", updatedEvent.availableSpots);
+
+    return updatedEvent;
 }
 
 // POST /api/events/{id}/images - Загрузить изображения мероприятия
+/*
 export async function uploadEventImages(eventId: string, images: File[], token: string): Promise<string[]> {
     const formData = new FormData();
 
@@ -298,4 +305,27 @@ export async function uploadEventImages(eventId: string, images: File[], token: 
     }
 
     return await response.json();
+}*/
+
+export async function uploadEventImage(eventId: string, image: File, token: string): Promise<string> {
+    const formData = new FormData();
+    formData.append('file', image); // Поле должно называться 'file', как в бэкенде
+
+    const response = await fetch(`${SERVER_URL}/api/v1.0/events/${eventId}/image`, {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${token}`,
+        },
+        body: formData,
+    });
+
+    if (!response.ok) {
+        const error = new Error(`${response.status}`);
+        // @ts-ignore
+        error.status = response.status;
+        throw error;
+    }
+
+    const eventDto = await response.json();
+    return eventDto.id; // или вернуть весь eventDto
 }

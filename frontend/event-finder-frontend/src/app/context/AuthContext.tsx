@@ -2,11 +2,13 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import {profileService} from "../services/profileServise";
 import {eventsService} from "../services/eventsService";
 import {reviewsService} from "../services/reviewsService";
+import {getUserById} from "../api/profileApi";
 
 interface AuthContextType {
     token: string | null;
     isAuthenticated: boolean;
     userName: string;
+    setUserName?: (newName: string) => void,
     userId: string | null;
     login: (token: string) => void;
     logout: () => void;
@@ -17,9 +19,8 @@ const AuthContext = createContext<AuthContextType>({
     isAuthenticated: false,
     userId: null,
 
-
-
     userName: "Пользователь",
+    setUserName: (newName: string) => {},
     login: () => {},
     logout: () => {},
 });
@@ -43,7 +44,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [token, setToken] = useState<string | null>(localStorage.getItem("token"));
     const [userName, setUserName] = useState("Гость");
     const [userId, setUserId] = useState<string | null>(null);
-
     useEffect(() => {
 //      Восстанавливаем токен из localStorage при загрузке
         const savedToken = localStorage.getItem("token");
@@ -54,16 +54,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     }, []);
 
-    const login = (newToken: string) => {
+    const login = async (newToken: string) => {
         setToken(newToken);
         localStorage.setItem("token", newToken);
 
         // Декодируем JWT для получения информации о пользователе
         const decoded = decodeJWT(newToken);
         if (decoded) {
-            setUserName(decoded.name || "Пользователь");
+            // setUserName(decoded.name || "Пользователь");
             setUserId(decoded.profileId);
+            const profile = await getUserById(decoded.profileId, newToken);
+            setUserName(profile.userName || "Пользователь");
             profileService.setUserId(decoded.profileId);
+            profileService.setSetterUserName(setUserName)
             console.log(decoded.profileId);
             eventsService.setCurrentUserId(decoded.profileId);
             reviewsService.setCurrentUserId(decoded.profileId);
@@ -72,9 +75,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const logout = () => {
         setToken(null);
-        setUserName("Гость");
+        setUserName("");
         setUserId(null);
         localStorage.removeItem("token");
+        window.location.href = "/event-finder/#/login";
     };
 
     return (
@@ -83,6 +87,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 token,
                 isAuthenticated: !!token,
                 userName,
+                setUserName,
                 userId,
                 login,
                 logout,

@@ -56,6 +56,7 @@ import {
 import { Badge } from "../components/ui/badge";
 import { EVENT_CATEGORIES } from '../constants/defaultConstants';
 import { showSuccess, showError, showInfo } from "../helpers/toastUtils";
+import {getEventCardImageUrl} from "../helpers/getEventCardImageUrl";
 
 export function ProfilePage() {
   const { token, logout, userId } = useAuth();
@@ -475,8 +476,8 @@ export function ProfilePage() {
           const uploadedUrls = await eventsService.uploadEventImages(savedEvent.id, eventImages, token);
           savedEvent = {
             ...savedEvent,
-            images: [...(savedEvent.images || []), ...uploadedUrls],
-            image: savedEvent.image || uploadedUrls[0],
+            // images: [...(savedEvent.images || []), ...uploadedUrls],
+            // image: savedEvent.image || getEventCardImageUrl(uploadedUrls[0]),
           };
         }
       } else {
@@ -607,7 +608,7 @@ export function ProfilePage() {
                   <TabsTrigger value="organizer" className="flex-shrink-0 cursor-pointer hover:bg-muted/50">Организатор</TabsTrigger>
                   <TabsTrigger value="events" className="flex-shrink-0 cursor-pointer hover:bg-muted/50">Мероприятия</TabsTrigger>
                   <TabsTrigger value="reviews" className="flex-shrink-0 cursor-pointer hover:bg-muted/50">Отзывы</TabsTrigger>
-                  <TabsTrigger value="settings" className="flex-shrink-0 cursor-pointer hover:bg-muted/50">Настройки</TabsTrigger>
+                  {/*<TabsTrigger value="settings" className="flex-shrink-0 cursor-pointer hover:bg-muted/50">Настройки</TabsTrigger>*/}
                 </TabsList>
               </Tabs>
             </div>
@@ -649,14 +650,14 @@ export function ProfilePage() {
                     >
                       <MessageSquare className="h-4 w-4 mr-2" /> Мои отзывы
                     </Button>
-                    <Button
+                    {/*<Button
                         variant={activeTab === "settings" ? "default" : "ghost"}
                         className="w-full justify-start cursor-pointer hover:bg-muted/50"
                         onClick={() => setActiveTab("settings")}
                         style={activeTab === "settings" ? { backgroundColor: 'var(--primary-color)' } : {}}
                     >
                       <Settings className="h-4 w-4 mr-2" /> Настройки
-                    </Button>
+                    </Button>*/}
                     <div className="pt-4 border-t">
                       <AlertDialog>
                         <AlertDialogTrigger asChild>

@@ -18,7 +18,7 @@
 
         public static ServiceResult Conflict(string errorCode, string message)
         {
-            var result = new ServiceResult(false, message, errorCode) { ResultCode = ServiceResultCode.Fail };
+            var result = new ServiceResult(false, message, errorCode) { ResultCode = ServiceResultCode.Conflict };
             return result;
         }
 

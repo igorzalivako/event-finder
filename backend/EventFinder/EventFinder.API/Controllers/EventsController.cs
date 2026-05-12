@@ -14,14 +14,16 @@ namespace EventFinder.API.Controllers
     {
         private readonly IEventService _eventService;
         private readonly IWebHostEnvironment _env;
+        private readonly ILogger<EventsController> _logger;
 
         private Guid CurrentUserId => Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new UnauthorizedAccessException());
         private Guid UserProfileId => Guid.Parse(User.FindFirst(Constants.ProfileIdClaimName)?.Value ?? throw new UnauthorizedAccessException());
 
-        public EventsController(IEventService eventService, IWebHostEnvironment env)
+        public EventsController(IEventService eventService, IWebHostEnvironment env, ILogger<EventsController> logger)
         {
             _eventService = eventService;
             _env = env;
+            _logger = logger;
         }
 
         [Authorize]
@@ -66,7 +68,9 @@ namespace EventFinder.API.Controllers
         public async Task<ActionResult<EventDto>> Create(EventDto dto)
         {
             var created = await _eventService.CreateEventAsync(dto, UserProfileId, "CurrentUserName", null);
+            _logger.LogCritical($"Id after creating::::::::: {created.Id}");
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+
         }
 
         [Authorize]
@@ -138,6 +142,9 @@ namespace EventFinder.API.Controllers
             // Ensure wwwroot/exact path
             var webRoot = env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var uploadsFolder = Path.Combine(webRoot, "images", "events");
+
+            _logger.LogCritical($"Web root path {env.WebRootPath} or web Root: {webRoot} and uploadsFolder is {uploadsFolder}");
+
             Directory.CreateDirectory(uploadsFolder);
 
             var fileName = $"{Guid.NewGuid()}{extension}";
@@ -162,21 +169,23 @@ namespace EventFinder.API.Controllers
             }
         }
 
-        [Authorize]
         [HttpGet("{id:guid}/image")]
         public async Task<IActionResult> GetImage(Guid id)
         {
+            _logger.LogCritical($"Id after getting::::::::: {id}");
             var @event = await _eventService.GetEventByIdAsync(id);
             if (@event == null || string.IsNullOrEmpty(@event.Image))
                 return NotFound();
 
             var webRoot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var fullPath = Path.Combine(webRoot, @event.Image.TrimStart('/'));
+            _logger.LogCritical($"Full path:::::::: {fullPath}");
 
             if (!System.IO.File.Exists(fullPath))
                 return NotFound();
 
             var contentType = GetContentType(Path.GetExtension(fullPath));
+            _logger.LogCritical($"Content type:::::::: {contentType}");
             return PhysicalFile(fullPath, contentType);
         }
 

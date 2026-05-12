@@ -39,13 +39,15 @@ namespace EventFinder.Application.Services
 
         public async Task<IEnumerable<EventDto>> GetEventsByOrganizerAsync(Guid organizerId)
         {
-            var events = await _eventRepository.GetAllAsync(e => e.OrganizerId == organizerId.ToString());
+            var events = await _eventRepository.GetAllAsync();
+            events = events.Where(e => e.OrganizerId == organizerId.ToString());
             return _mapper.Map<IEnumerable<EventDto>>(events);
         }
 
         public async Task<IEnumerable<EventDto>> GetUserRegisteredEventsAsync(Guid userId)
         {
             var events = await _eventRepository.GetAllAsync(e => e.Registrations);
+            events = events.Where(e => e.Registrations.FirstOrDefault(r => r.UserId == userId.ToString()) != null);
             var dtos = new List<EventDto>();
 
             foreach (var @event in events)
@@ -118,6 +120,10 @@ namespace EventFinder.Application.Services
             try
             {
                 await _registratoinRepository.AddAsync(registration);
+                var currEvent = await _eventRepository.GetByIdAsync(eventId);
+                currEvent.AvailableSpots -= 1;
+                _eventRepository.Update(currEvent);
+                await _eventRepository.SaveChangesAsync();
             }
             catch
             {
@@ -136,11 +142,16 @@ namespace EventFinder.Application.Services
 
         public async Task<EventDto?> CancelRegistrationAsync(Guid eventId, Guid userId)
         {
-            Registration registration = new Registration { EventId = eventId.ToString(), UserId = userId.ToString() };
+            var registrations = await _registratoinRepository.GetAllAsync();
+            var registration = registrations.Where(r => r.EventId == eventId.ToString() && r.UserId == userId.ToString()).FirstOrDefault();
 
             try
             {
                 _registratoinRepository.Delete(registration);
+                var currEvent = await _eventRepository.GetByIdAsync(eventId);
+                currEvent.AvailableSpots += 1;
+                _eventRepository.Update(currEvent);
+                await _eventRepository.SaveChangesAsync();
             }
             catch
             {

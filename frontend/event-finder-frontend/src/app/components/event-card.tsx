@@ -4,6 +4,8 @@ import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { EventEntity } from '../entities/event.types'
 import { DEFAULT_EVENT_IMAGE } from '../constants/defaultConstants'
+import {SERVER_URL} from "../config/serverConfig";
+import {getEventCardImageUrl} from "../helpers/getEventCardImageUrl";
 
 interface EventCardProps {
   event: EventEntity;
@@ -23,7 +25,7 @@ export function EventCard({ event, compact = false }: EventCardProps) {
       >
         <div className="relative overflow-hidden aspect-[16/9]">
           <img
-              src={event.image || DEFAULT_EVENT_IMAGE}
+              src={getEventCardImageUrl(event.id as string) || DEFAULT_EVENT_IMAGE}
               alt={event.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />

@@ -26,17 +26,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import {useAuth} from "../context/AuthContext";
 
 export function OrganizerPage() {
   const { id } = useParams();
   const organizer = mockOrganizers.find((o) => o.id === id);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [rating, setRating] = useState(0);
+  const {userName} = useAuth();
 
   if (!organizer) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Header isAuthenticated={true} userName="Александр" />
+        <Header isAuthenticated={true} userName={userName} />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <h2>Организатор не найден</h2>
@@ -71,7 +73,7 @@ export function OrganizerPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header isAuthenticated={true} userName="Александр" />
+      <Header isAuthenticated={true} userName={userName} />
       <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
           {/* Organizer Header */}

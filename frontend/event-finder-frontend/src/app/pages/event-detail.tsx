@@ -21,6 +21,8 @@ import { ReviewEntity } from "../entities/review.types";
 import { ProfileEntity } from "../entities/profile.types";
 import { DEFAULT_EVENT_IMAGE } from "../constants/defaultConstants";
 import { showSuccess, showError, showInfo } from "../helpers/toastUtils";
+import {SERVER_URL} from "../config/serverConfig";
+import {getEventCardImageUrl} from "../helpers/getEventCardImageUrl";
 
 export function EventDetailPage() {
   const { id } = useParams();
@@ -45,6 +47,7 @@ export function EventDetailPage() {
 
   useEffect(() => {
     if (token && id) {
+      profileService.setUserId(userId as string);
       loadEventData();
       loadUserProfile();
     }
@@ -53,8 +56,11 @@ export function EventDetailPage() {
   const loadUserProfile = async () => {
     if (!token) return;
     try {
+      console.log("Our current UserId: ", userId);
+      profileService.setUserId(userId as string);
       const profile = await profileService.getProfile(token);
       setUserProfile(profile);
+      console.log("Our current profile: ", profile);
     } catch (err) {
       console.error("Failed to load user profile:", err);
     }
@@ -96,11 +102,44 @@ export function EventDetailPage() {
     if (!token || !id) return;
 
     setRegistering(true);
+
+    // Сохраняем текущее состояние для возможного отката
+    const oldEvent = event;
+    const oldIsRegistered = isRegistered;
+
+    // Оптимистичное обновление (мгновенно меняем UI)
+    if (event) {
+      setEvent({
+        ...event,
+        availableSpots: (event.availableSpots || 0)
+      });
+      setIsRegistered(true);
+    }
+
     try {
-      await eventsService.registerForEvent(id, token);
-      await loadEventData();
+      // ПОЛУЧАЕМ ОБНОВЛЕННОЕ СОБЫТИЕ ИЗ API
+      const updatedEvent = await eventsService.registerForEvent(id, token);
+
+      // ИСПОЛЬЗУЕМ ДАННЫЕ ИЗ ОТВЕТА
+      setEvent(updatedEvent);
+
+      // Проверяем статус регистрации из обновленного события
+      // Если бэкенд возвращает поле isRegistered или amIMember
+      // @ts-ignore - если есть такое поле
+      const isUserRegistered = updatedEvent.amIMember === true ||
+          updatedEvent.isRegistered === true ||
+          updatedEvent.participants?.includes(userId);
+
+      setIsRegistered(isUserRegistered);
+
       showSuccess("Вы успешно записались на мероприятие!");
     } catch (err: any) {
+      // Откатываем оптимистичное обновление при ошибке
+      if (oldEvent) {
+        setEvent(oldEvent);
+      }
+      setIsRegistered(oldIsRegistered);
+
       console.error("Failed to register for event:", err);
       if (err.status === 400) {
         showError("Нет свободных мест");
@@ -118,11 +157,42 @@ export function EventDetailPage() {
     if (!token || !id) return;
 
     setCancelling(true);
+
+    // Сохраняем текущее состояние для возможного отката
+    const oldEvent = event;
+    const oldIsRegistered = isRegistered;
+
+    // Оптимистичное обновление (мгновенно меняем UI)
+    if (event) {
+      setEvent({
+        ...event,
+        availableSpots: (event.availableSpots || 0)
+      });
+      setIsRegistered(false);
+    }
+
     try {
-      await eventsService.cancelEventRegistration(id, token);
-      await loadEventData();
+      // ПОЛУЧАЕМ ОБНОВЛЕННОЕ СОБЫТИЕ ИЗ API
+      const updatedEvent = await eventsService.cancelEventRegistration(id, token);
+
+      // ИСПОЛЬЗУЕМ ДАННЫЕ ИЗ ОТВЕТА
+      setEvent(updatedEvent);
+
+      // Проверяем статус регистрации из обновленного события
+      // @ts-ignore
+      const isUserRegistered = updatedEvent.amIMember === true ||
+          updatedEvent.isRegistered === true;
+
+      setIsRegistered(isUserRegistered);
+
       showSuccess("Вы успешно отменили запись на мероприятие");
     } catch (err: any) {
+      // Откатываем оптимистичное обновление при ошибке
+      if (oldEvent) {
+        setEvent(oldEvent);
+      }
+      setIsRegistered(oldIsRegistered);
+
       console.error("Failed to cancel registration:", err);
       showError("Не удалось отменить запись");
     } finally {
@@ -206,9 +276,10 @@ export function EventDetailPage() {
   const isOrganizer = event.organizerId === userId;
   const isFullyBooked = event.availableSpots === 0;
 
+  // @ts-ignore
   return (
       <div className="min-h-screen flex flex-col">
-        <Header isAuthenticated={true} userName={userName || "Пользователь"} />
+        <Header isAuthenticated={true} userName={userName} />
         <main className="flex-1">
           <div className="container mx-auto px-4 py-8">
             <div className="mb-8">
@@ -224,7 +295,7 @@ export function EventDetailPage() {
               <div className="lg:col-span-2 space-y-8">
                 <div className="rounded-lg overflow-hidden">
                   <img
-                      src={event.image || DEFAULT_EVENT_IMAGE}
+                      src={getEventCardImageUrl(event.id as string) || DEFAULT_EVENT_IMAGE}
                       alt={event.title}
                       className="w-full h-96 object-cover"
                   />
@@ -453,20 +524,9 @@ export function EventDetailPage() {
                           )}
                         </>
                     )}
-
-                    {isOrganizer && (
-                        <Button
-                            className="w-full cursor-pointer hover:bg-gray-100"
-                            size="lg"
-                            variant="outline"
-                            onClick={() => navigate(`/events/${event.id}/edit`)}
-                        >
-                          Редактировать мероприятие
-                        </Button>
-                    )}
                   </div>
 
-                  <Link
+                  {/*<Link
                       to={`/organizers/${event.organizerId}`}
                       className="block border rounded-lg p-6 hover:shadow-lg hover:bg-gray-50 transition-all cursor-pointer"
                   >
@@ -480,7 +540,7 @@ export function EventDetailPage() {
                         <h4>{event.organizerName}</h4>
                       </div>
                     </div>
-                  </Link>
+                  </Link>*/}
                 </div>
               </div>
             </div>

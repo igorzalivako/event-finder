@@ -9,13 +9,15 @@ namespace EventFinder.Application.Services
     {
         private readonly IRepository<Review> _reviewRepository;
         private readonly IRepository<Event> _eventRepository;
+        private readonly IRepository<User> _userRepository;
         private readonly IMapper _mapper;
 
-        public ReviewService(IRepository<Review> reviewRepository, IRepository<Event> eventRepository, IMapper mapper)
+        public ReviewService(IRepository<Review> reviewRepository, IRepository<Event> eventRepository, IMapper mapper, IRepository<User> userRepository)
         {
             _reviewRepository = reviewRepository;
             _eventRepository = eventRepository;
             _mapper = mapper;
+            _userRepository = userRepository;
         }
 
         public async Task<IEnumerable<ReviewDto>> GetAllReviewsAsync()
@@ -33,17 +35,30 @@ namespace EventFinder.Application.Services
 
         public async Task<IEnumerable<ReviewDto>> GetReviewsByUserAsync(Guid userId)
         {
-            var reviews = await _reviewRepository.GetAllAsync(r => r.UserId == userId.ToString());
-            return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
+            var reviews = await _reviewRepository.GetAllAsync();
+            reviews = reviews.Where(r => r.UserId == userId.ToString());
+            var dtos = _mapper.Map<IEnumerable<ReviewDto>>(reviews);
+            foreach (ReviewDto dto in dtos)
+            {
+                dto.UserName = (await _userRepository.GetByIdAsync(Guid.Parse(dto.UserId))).UserName;
+            }
+            return dtos;
         }
 
         public async Task<IEnumerable<ReviewDto>> GetReviewsByOrganizerAsync(Guid organizerId)
         {
             // Gathers reviews where the associated event's organizer matches
-            var events = await _eventRepository.GetAllAsync(e => e.OrganizerId == organizerId.ToString());
+            var events = await _eventRepository.GetAllAsync();
+            events = events.Where(e => e.OrganizerId == organizerId.ToString());
             var eventIds = events.Select(e => e.Id).ToList();
-            var reviews = await _reviewRepository.GetAllAsync(r => eventIds.Contains(r.EventId.ToString()));
-            return _mapper.Map<IEnumerable<ReviewDto>>(reviews);
+            var reviews = await _reviewRepository.GetAllAsync();
+            reviews = reviews.Where(r => eventIds.Contains(r.EventId.ToString()));
+            var dtos = _mapper.Map<IEnumerable<ReviewDto>>(reviews);
+            foreach (ReviewDto dto in dtos)
+            {
+                dto.UserName = (await _userRepository.GetByIdAsync(Guid.Parse(dto.UserId))).UserName;
+            }
+            return dtos;
         }
 
         public async Task<ReviewDto> CreateReviewAsync(ReviewDto dto, Guid authorId, string authorName, string? authorAvatar)

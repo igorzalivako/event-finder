@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {Link, useNavigate } from "react-router-dom";
 import isEmailValid from "../helpers/isEmailValid";
 import { login as loginApi, forgotPassword } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
-import { showSuccess, showError } from "../utils/toastUtils";
+import { showSuccess, showError } from "../helpers/toastUtils";
 
 export const LoginPage = () => {
     const navigate = useNavigate();
@@ -180,9 +180,9 @@ export const LoginPage = () => {
                         </button>
                         <p className="text-[var(--primary-text-color)]">
                             Нет аккаунта?{" "}
-                            <a href="/register" className="text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] font-medium">
+                            <Link to="/register" className="text-[var(--primary-color)] hover:text-[var(--primary-hover-color)] font-medium">
                                 Создать аккаунт
-                            </a>
+                            </Link>
                         </p>
                     </div>
                 </div>

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import {Link, useNavigate } from "react-router-dom";
 import isEmailValid from "../helpers/isEmailValid";
 import { register } from "../api/authApi";
-import { showSuccess, showError } from "../utils/toastUtils";
+import { showSuccess, showError } from "../helpers/toastUtils";
 
 export const RegisterPage = () => {
     const navigate = useNavigate();
@@ -57,12 +57,12 @@ export const RegisterPage = () => {
 
         try {
             await register(email, password);
-            showSuccess("Регистрация прошла успешно! Теперь вы можете войти.");
+            showSuccess("Регистрация прошла успешно! Пожалуйста, проверьте электронную почту для подтверждения!");
             navigate("/login");
         } catch (err: any) {
             switch (err.status) {
                 case 409:
-                    setEmailError("Email уже занят");
+                    showError("Email уже занят");
                     break;
                 case 500:
                     showError("Ошибка сервера, попробуйте позже");
@@ -220,9 +220,9 @@ export const RegisterPage = () => {
                     {/* LOGIN LINK */}
                     <p className="text-center text-sm text-[var(--primary-text-color)] pt-2">
                         Уже есть аккаунт?{" "}
-                        <a href="/login" className="text-[var(--primary-color)] hover:underline font-medium">
+                        <Link to="/login" className="text-[var(--primary-color)] hover:underline font-medium">
                             Войти
-                        </a>
+                        </Link>
                     </p>
                 </div>
             </div>

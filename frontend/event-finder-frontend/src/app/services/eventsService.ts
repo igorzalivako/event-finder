@@ -10,7 +10,7 @@ import {
     cancelEventRegistration
 } from "../api/eventsApi";
 import { EventEntity } from "../entities/event.types";
-import { uploadEventImages } from "../api/eventsApi";
+import { uploadEventImage } from "../api/eventsApi";
 
 class EventsService {
     private currentUserId: string | null = null;
@@ -102,7 +102,8 @@ class EventsService {
 
     async uploadEventImages(eventId: string, images: File[], token: string): Promise<string[]> {
         try {
-            return await uploadEventImages(eventId, images, token);
+            const id = await uploadEventImage(eventId, images[0], token);
+            return [id];
         } catch (error) {
             console.error("Error uploading event images:", error);
             throw error;

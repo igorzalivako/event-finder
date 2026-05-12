@@ -53,7 +53,7 @@ export async function getReviewById(reviewId: string, token: string): Promise<Re
 
 // GET /api/reviews/user/{userId} - Получить отзывы пользователя (автора)
 export async function getUserReviews(userId: string, token: string): Promise<ReviewEntity[]> {
-    const response = await fetch(`${SERVER_URL}/api/v1.0/reviews?authorId=${userId}`, {
+    const response = await fetch(`${SERVER_URL}/api/v1.0/reviews/user/${userId}`, {
         method: "GET",
         headers: {
             "Authorization": `Bearer ${token}`,
@@ -72,9 +72,9 @@ export async function getUserReviews(userId: string, token: string): Promise<Rev
 }
 
 // GET /api/reviews/organizer/{organizerId} - Получить отзывы пользователя (автора)
-export async function getOrganizerReviews(userId: string, token: string): Promise<ReviewEntity[]> {
+export async function getOrganizerReviews(organizerId: string, token: string): Promise<ReviewEntity[]> {
 
-    const response = await fetch(`${SERVER_URL}/api/v1.0/reviews?authorId=${userId}`, {
+    const response = await fetch(`${SERVER_URL}/api/v1.0/reviews/organizer/${organizerId}`, {
         method: "GET",
         headers: {
             "Authorization": `Bearer ${token}`,

@@ -20,7 +20,7 @@ namespace EventFinder.Infrastructure.Data.Repositories
             IQueryable<T> query = _dbSet;
             foreach (var include in includes)
                 query = query.Include(include);
-            return await query.FirstOrDefaultAsync(e => EF.Property<Guid>(e, "Id") == id);
+            return await query.FirstOrDefaultAsync(e => EF.Property<string>(e, "Id") == id.ToString());
         }
 
         public async Task<IEnumerable<T>> GetAllAsync(params Expression<Func<T, object>>[] includes)

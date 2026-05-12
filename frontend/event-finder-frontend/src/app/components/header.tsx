@@ -8,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import {useAuth} from "../context/AuthContext";
 
 interface HeaderProps {
   isAuthenticated?: boolean;
@@ -16,7 +17,7 @@ interface HeaderProps {
 
 export function Header({ isAuthenticated = false, userName = "Пользователь" }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  const {logout} = useAuth();
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
@@ -39,7 +40,7 @@ export function Header({ isAuthenticated = false, userName = "Пользоват
             >
               Мероприятия
             </Link>
-            <Link
+{/*            <Link
               to="/organizers/org1"
               className="transition-colors"
               style={{ transition: 'var(--hover-button-transition)' }}
@@ -47,7 +48,7 @@ export function Header({ isAuthenticated = false, userName = "Пользоват
               onMouseLeave={(e) => (e.currentTarget.style.color = '')}
             >
               Организаторы
-            </Link>
+            </Link>*/}
             <Link
               to="/"
               className="transition-colors"
@@ -101,7 +102,7 @@ export function Header({ isAuthenticated = false, userName = "Пользоват
                       Мои отзывы
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">
+                  <DropdownMenuItem className="cursor-pointer" onClick={() => logout()}>
                     <LogOut className="mr-2 h-4 w-4" />
                     Выход
                   </DropdownMenuItem>
@@ -141,9 +142,9 @@ export function Header({ isAuthenticated = false, userName = "Пользоват
             <Link to="/" className="block py-2" onClick={() => setMobileMenuOpen(false)}>
               Мероприятия
             </Link>
-            <Link to="/organizers/org1" className="block py-2" onClick={() => setMobileMenuOpen(false)}>
+{/*            <Link to="/organizers/org1" className="block py-2" onClick={() => setMobileMenuOpen(false)}>
               Организаторы
-            </Link>
+            </Link>*/}
             <Link to="/" className="block py-2" onClick={() => setMobileMenuOpen(false)}>
               О нас
             </Link>
